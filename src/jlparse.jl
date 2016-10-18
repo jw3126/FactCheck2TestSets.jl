@@ -47,12 +47,10 @@ function lhs_rhs2testcore_roughly(lhs, rhs)
     end
 end
 
+lhs_rhs2testcore(lhs, rhs::Bool) = rhs ? lhs : :(!$lhs)
+
 function lhs_rhs2testcore(lhs, rhs)
-    if rhs == true
-        return lhs
-    elseif rhs == false
-        return :(!$lhs)
-    elseif rhs in PROPERTIES
+    if rhs in PROPERTIES
         return :($rhs($lhs))
     elseif iscall(rhs)
         f = calle(rhs)

@@ -42,7 +42,7 @@ comment = (p"#.*" | ws) > string
 core = context_header | facts
 line = indent + core + ws + comment > Line
 
-writecomment(s) = s == "" ? "" : " " + s
+writecomment(s) = s == "" ? "" : string(" ", s)
 function writeline(l::Line)
     string(l.indent, writecore(l.core), writecomment(l.comment))
 end
