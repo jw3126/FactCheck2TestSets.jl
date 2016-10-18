@@ -25,3 +25,6 @@ function callargs(ex::Expr)
     @assert iscall_fun_or_macro(ex)
     ex.args[2:end]
 end
+
+const INCOMPLETE = parse("[")
+isincomplete(ex) = ex == INCOMPLETE

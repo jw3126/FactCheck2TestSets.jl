@@ -1,4 +1,3 @@
-
 const INTERESTING = ["Fact", "context"]
 
 isinteresting(line::String) = map(INTERESTING) do keyword
@@ -20,12 +19,12 @@ function convert_folder(root)
     end
 end
 
-function convert_pkg(pkgname; checkout=true, install=true)
-    # install && Pkg.add(pkgname)
-    # checkout && Pkg.checkout(pkgname)
+function convert_pkg(pkgname; checkout=false, install=false, reset_hard=false)
+    install && Pkg.add(pkgname)
+    checkout && Pkg.checkout(pkgname)
     pkgdir = Pkg.dir(pkgname)
     cd(pkgdir)
-    run(`git reset --hard`)
+    reset_hard && run(`git reset --hard`)
     branch = "hellotestsets"
     try run(`git branch $branch`) catch e println(e) end
     sleep(0.1)

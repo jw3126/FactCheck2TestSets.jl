@@ -29,7 +29,9 @@ fact = p"[^#]*@fact" + nocomment > Fact
 facts = fact_throws | fact
 
 function writecore(f::Fact)
-    f.code |> parse |> MacroTools.striplines |> factcheck2testset |> string
+    ex = f.code |> parse |> MacroTools.striplines
+    isincomplete(ex) && return "$(f.code) # TODO FactCheck2TestSets Parsing Error"
+    ex |> factcheck2testset |> string
 end
 
 type Line
