@@ -10,12 +10,18 @@ function walkpaths(f, root)
     end
 end
 
+ismacrocall(x) = false
+ismacrocall(ex::Expr) = ex.head == :macrocall
+
 iscall(ex::Expr) = ex.head == :call
 iscall(x) = false
-calle(ex::Expr) = (@assert iscall(ex); ex.args[1])
+
+iscall_fun_or_macro(x) = iscall(x) | ismacrocall(x)
+
+calle(ex::Expr) = (@assert iscall_fun_or_macro(ex); ex.args[1])
 callarg_unique(ex::Expr) = ex |> callargs |> unpack
 
 function callargs(ex::Expr)
-    @assert iscall(ex)
+    @assert iscall_fun_or_macro(ex)
     ex.args[2:end]
 end
