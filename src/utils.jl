@@ -1,12 +1,19 @@
+unpack(x) = (@assert length(x)==1; x[1])
+isjl(path) = splitext(path)[2] == ".jl"
+
+function walkpaths(f, root)
+    for (dir, _, files) in walkdir(root)
+        for file in files
+            path = joinpath(dir, file)
+            f(path)
+        end
+    end
+end
 
 iscall(ex::Expr) = ex.head == :call
 iscall(x) = false
 calle(ex::Expr) = (@assert iscall(ex); ex.args[1])
-function callarg_unique(ex::Expr)
-    argp = callargs(ex::Expr)
-    @assert length(argp) == 1 ex
-    return argp[1]
-end
+callarg_unique(ex::Expr) = ex |> callargs |> unpack
 
 function callargs(ex::Expr)
     @assert iscall(ex)
