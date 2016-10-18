@@ -65,3 +65,17 @@ function lhs_rhs2testcore(lhs, rhs)
         return :($lhs == $rhs)
     end
 end
+
+function fact_throws2test_throws(ex::Expr)
+    @assert ex.head == :macrocall
+    @assert ex.args[1] == Symbol("@fact_throws")
+    args = ex.args[2:end]
+    if length(args) == 1
+        except = :Exception
+        code = args[1]
+    else
+        @assert length(args) == 2
+        except, code = args
+    end
+    :(@test_throws $except $code)
+end
