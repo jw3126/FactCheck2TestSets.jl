@@ -4,7 +4,7 @@ using MacroTools, ParserCombinator
 # package code goes here
 include("utils.jl")
 include("jlparse.jl")
-include("convert_line.jl")
+include("migration.jl")
 include("parsercombinator.jl")
 
 end # module

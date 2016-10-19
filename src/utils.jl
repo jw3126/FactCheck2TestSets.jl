@@ -33,13 +33,18 @@ immutable MacroCall{f} end
 immutable Call{f} end
 immutable AnyExpr end
 immutable NoExpr end
+immutable Lambda end
 
 extrait(ex::Any) = NoExpr()
 function extrait(ex::Expr)
     if iscall(ex)
-        return Call{calle(ex)}()
+        f = calle(ex)
+        typeof(f) == Expr || return Call{f}()  # HACK: julia does not like expressions as type parameters
+        return AnyExpr()
     elseif ismacrocall(ex)
         return MacroCall{calle(ex)}()
+    elseif ex.head == Symbol("->")
+        return Lambda()
     else
         return AnyExpr()
     end

@@ -1,4 +1,4 @@
-import FactCheck2TestSets: fact2testcore, fact_throws2test_throws, fc2ts
+import FactCheck2TestSets: fact2testcore, fc2ts
 
 @testset "@fact" begin
     @testset "rhs bool" begin

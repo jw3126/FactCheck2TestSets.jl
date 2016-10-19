@@ -9,10 +9,15 @@ const COMPARISON_DICT = Dict(
 :greater_than_or_equal => Symbol(">="),
 )
 
-const PROPERTIES = [:isnan, :isinf, :isfinite, :isodd, :iseven]
+const PROPERTIES = [:isnan, :isinf, :isfinite, :isodd, :iseven, :isempty]
 
-fc2ts(x::Expr) = fc2ts(x, extrait(x))
+"""
+    fc2ts(x)
+
+Convert expression like object x from FactCheck to TestSet.
+"""
 fc2ts(x) = x
+fc2ts(x::Expr) = fc2ts(x, extrait(x))
 
 function fc2ts(ex, ::MacroCall{SFACT})
      ex |> fact2testcore |> testex
@@ -46,7 +51,7 @@ end
 testex(args...) = Expr(:macrocall, Symbol("@test"), args...)
 
 lhs_rhs2testcore(lhs, rhs) = lhs_rhs2testcore(lhs, rhs, extrait(rhs))
-lhs_rhs2testcore(lhs, rhs, ::NoExpr) = :($lhs == $rhs)
+lhs_rhs2testcore(lhs, rhs, rtrait) = :($lhs == $rhs)
 lhs_rhs2testcore(lhs, rhs::Bool, ::NoExpr) = rhs ? lhs : :(!$lhs)
 
 function lhs_rhs2testcore(lhs, rhs::Symbol, ::NoExpr)
@@ -89,4 +94,8 @@ function lhs_rhs2testcore{f}(lhs, rhs::Expr, ::Call{f})
     else
         return :($lhs == $rhs)
     end
+end
+
+function lhs_rhs2testcore(lhs, rhs::Expr, ::Lambda)
+    Expr(:call, rhs, lhs)
 end

@@ -41,4 +41,10 @@ import FactCheck2TestSets: convert_line
     # s = "@fact abs(ovr[1, 2] - RGB{Float32}(a[1, 2], b[1, 2], a[1, 2])) --> roughly(0, atol=1e-5)"
     s = """@fact dimindex(imgds, "z") --> 0"""
     @test convert_line(s) == "@test dimindex(imgds,\"z\") == 0"
+
+    s = """@fact update(l, 1, 1)   --> (leaf) -> hasindex(leaf[1], 1)"""
+    @test convert_line(s) == "@test ((leaf->begin \n            hasindex(leaf[1],1)\n        end))(update(l,1,1))"
+
+    s = "@fact PersistentVector([1])   --> not(isempty)"
+    @test convert_line(s) == "@test !(isempty(PersistentVector([1])))"
 end
