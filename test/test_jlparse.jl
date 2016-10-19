@@ -1,4 +1,4 @@
-import FactCheck2TestSets: fact2testcore, fact_throws2test_throws
+import FactCheck2TestSets: fact2testcore, fact_throws2test_throws, fc2ts
 
 @testset "@fact" begin
     @testset "rhs bool" begin
@@ -47,7 +47,7 @@ end
 
 @testset "@fact_throws" begin
     ex = :(@fact_throws DimensionMismatch x[3])
-    @test fact_throws2test_throws(ex) == :(@test_throws DimensionMismatch x[3])
+    @test fc2ts(ex) == :(@test_throws DimensionMismatch x[3])
     ex = :(@fact_throws x[3])
-    @test fact_throws2test_throws(ex) == :(@test_throws Exception x[3])
+    @test fc2ts(ex) == :(@test_throws Exception x[3])
 end

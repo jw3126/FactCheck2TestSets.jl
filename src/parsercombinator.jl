@@ -31,7 +31,7 @@ facts = fact_throws | fact
 function writecore(f::Fact)
     ex = f.code |> parse |> MacroTools.striplines
     isincomplete(ex) && return "$(f.code) # TODO FactCheck2TestSets Parsing Error"
-    ex |> factcheck2testset |> string
+    ex |> fc2ts |> string
 end
 
 type Line

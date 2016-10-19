@@ -28,3 +28,19 @@ end
 
 const INCOMPLETE = parse("[")
 isincomplete(ex) = ex == INCOMPLETE
+
+immutable MacroCall{f} end
+immutable Call{f} end
+immutable AnyExpr end
+immutable NoExpr end
+
+extrait(ex::Any) = NoExpr()
+function extrait(ex::Expr)
+    if iscall(ex)
+        return Call{calle(ex)}()
+    elseif ismacrocall(ex)
+        return MacroCall{calle(ex)}()
+    else
+        return AnyExpr()
+    end
+end

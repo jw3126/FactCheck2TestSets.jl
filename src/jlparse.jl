@@ -11,6 +11,32 @@ const COMPARISON_DICT = Dict(
 
 const PROPERTIES = [:isnan, :isinf, :isfinite, :isodd, :iseven]
 
+fc2ts(x::Expr) = fc2ts(x, extrait(x))
+fc2ts(x) = x
+
+function fc2ts(ex, ::MacroCall{SFACT})
+     ex |> fact2testcore |> testex
+end
+
+fact2testcore(ex) = lhs_rhs2testcore(lhs_rhs(ex)...)
+
+function fc2ts(ex, ::AnyExpr)
+    args = map(fc2ts, ex.args)
+    return Expr(ex.head, args...)
+end
+
+function fc2ts(ex, ::MacroCall{SFACT_THROWS})
+    args = ex.args[2:end]
+    if length(args) == 1
+        except = :Exception
+        code = args[1]
+    else
+        @assert length(args) == 2
+        except, code = args
+    end
+    :(@test_throws $except $code)
+end
+
 function lhs_rhs(ex)
     @match ex begin
         @fact(lhs_ --> rhs_) => (lhs, rhs)
@@ -19,11 +45,19 @@ end
 
 testex(args...) = Expr(:macrocall, Symbol("@test"), args...)
 
-fact2testcore(factex) = lhs_rhs2testcore(lhs_rhs(factex)...)
-fact2test(factex) = factex |> fact2testcore |> testex
+lhs_rhs2testcore(lhs, rhs) = lhs_rhs2testcore(lhs, rhs, extrait(rhs))
+lhs_rhs2testcore(lhs, rhs, ::NoExpr) = :($lhs == $rhs)
+lhs_rhs2testcore(lhs, rhs::Bool, ::NoExpr) = rhs ? lhs : :(!$lhs)
 
+function lhs_rhs2testcore(lhs, rhs::Symbol, ::NoExpr)
+    if rhs in PROPERTIES
+        return :($rhs($lhs))
+    else
+        return :($lhs == $rhs)
+    end
+end
 
-function lhs_rhs2testcore_not(lhs, rhs)
+function lhs_rhs2testcore(lhs, rhs::Expr, ::Call{:not})
     @assert rhs.args[1] == :not
     rhs_new = callarg_unique(rhs)
     ex = lhs_rhs2testcore(lhs, rhs_new)
@@ -36,7 +70,7 @@ function atol2kw(x::Expr)
     return Expr(:kw, :atol, x)
 end
 
-function lhs_rhs2testcore_roughly(lhs, rhs)
+function lhs_rhs2testcore(lhs, rhs::Expr, ::Call{:roughly})
     args = callargs(rhs)
     arg = args[1]
     kw = map(atol2kw, args[2:end])
@@ -47,50 +81,12 @@ function lhs_rhs2testcore_roughly(lhs, rhs)
     end
 end
 
-lhs_rhs2testcore(lhs, rhs::Bool) = rhs ? lhs : :(!$lhs)
-
-function lhs_rhs2testcore(lhs, rhs)
-    if rhs in PROPERTIES
-        return :($rhs($lhs))
-    elseif iscall(rhs)
-        f = calle(rhs)
-        if f == :not
-            return lhs_rhs2testcore_not(lhs, rhs)
-        elseif f == :roughly
-            return lhs_rhs2testcore_roughly(lhs, rhs)
-        elseif f in keys(COMPARISON_DICT)
-            s = COMPARISON_DICT[f]
-            rhs_new = callarg_unique(rhs)
-            return Expr(:call, s, lhs, rhs_new)
-        end
-        return :($lhs == $rhs)
+function lhs_rhs2testcore{f}(lhs, rhs::Expr, ::Call{f})
+    if f in keys(COMPARISON_DICT)
+        s = COMPARISON_DICT[f]
+        rhs_new = callarg_unique(rhs)
+        return Expr(:call, s, lhs, rhs_new)
     else
         return :($lhs == $rhs)
     end
-end
-
-function fact_throws2test_throws(ex::Expr)
-    @assert ex.head == :macrocall
-    @assert ex.args[1] == SFACT_THROWS
-    args = ex.args[2:end]
-    if length(args) == 1
-        except = :Exception
-        code = args[1]
-    else
-        @assert length(args) == 2
-        except, code = args
-    end
-    :(@test_throws $except $code)
-end
-
-
-factcheck2testset(x) = x
-function factcheck2testset(ex::Expr)
-    if ismacrocall(ex)
-        c = calle(ex)
-        c == SFACT_THROWS && return fact_throws2test_throws(ex)
-        c == SFACT && return fact2test(ex)
-    end
-    args = map(factcheck2testset, ex.args)
-    return Expr(ex.head, args...)
 end
