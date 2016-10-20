@@ -19,18 +19,17 @@ Convert expression like object x from FactCheck to TestSet.
 fc2ts(x) = x
 fc2ts(x::Expr) = fc2ts(x, extrait(x))
 
-function fc2ts(ex, ::MacroCall{SFACT})
+function fc2ts(ex::Expr, ::MacroCall{SFACT})
      ex |> fact2testcore |> testex
 end
 
-fact2testcore(ex) = lhs_rhs2testcore(lhs_rhs(ex)...)
 
-function fc2ts(ex, ::AnyExpr)
+function fc2ts(ex::Expr, ::Any)
     args = map(fc2ts, ex.args)
     return Expr(ex.head, args...)
 end
 
-function fc2ts(ex, ::MacroCall{SFACT_THROWS})
+function fc2ts(ex::Expr, ::MacroCall{SFACT_THROWS})
     args = ex.args[2:end]
     if length(args) == 1
         except = :Exception
@@ -41,6 +40,29 @@ function fc2ts(ex, ::MacroCall{SFACT_THROWS})
     end
     :(@test_throws $except $code)
 end
+
+function fc2ts(ex::Expr, ::Call{:context})
+    name, arg, body = name_arg_body(ex)
+    body = fc2ts(body)
+    :(@testset $arg $body)
+end
+
+function fc2ts(ex::Expr, ::Call{:facts})
+    name, arg, body = name_arg_body(ex)
+    body = fc2ts(body)
+    :(@testset $arg $body)
+end
+
+function name_arg_body(doblock::Expr)
+    @match doblock begin
+        (name_)(arg_) do
+            body_
+        end => (name, arg, body)
+    end
+end
+
+
+fact2testcore(ex) = lhs_rhs2testcore(lhs_rhs(ex)...)
 
 function lhs_rhs(ex)
     @match ex begin
