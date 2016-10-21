@@ -47,4 +47,8 @@ import FactCheck2TestSets: convert_line
 
     s = "@fact PersistentVector([1])   --> not(isempty)"
     @test convert_line(s) == "@test !(isempty(PersistentVector([1])))"
+
+    s = """    @fact_throws FileIO.WriterError save(Stream(format"BROKEN", STDOUT))"""
+    @test convert_line(s) == "    @test_throws FileIO.WriterError save(Stream(format\"BROKEN\",STDOUT))"
+
 end

@@ -31,7 +31,7 @@ facts = fact_throws | fact
 function writecore(f::Fact)
     ex = f.code |> parse |> MacroTools.striplines
     isincomplete(ex) && return "$(f.code) # TODO FactCheck2TestSets Parsing Error"
-    ex |> fc2ts |> string
+    ex |> fc2ts |> string |> sugar
 end
 
 type Line
@@ -56,7 +56,10 @@ writeline(b::Blob) = b.code
 #### ignore
 immutable BitBucket end
 
-ignore = ws + (E"FactCheck.exitstatus()"|ws) + ws + Eos() > BitBucket
+ignore_exitstatus = ws + (E"FactCheck.exitstatus()"|ws) + ws + Eos() > BitBucket
+ignore_usingtest = ws + (E"using Base.Test") + ws + Eos() > BitBucket
+ignore = ignore_usingtest | ignore_exitstatus
+
 writeline(::BitBucket) = ""
 
 immutable UsingFactCheck end

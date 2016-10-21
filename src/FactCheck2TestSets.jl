@@ -7,5 +7,6 @@ include("jlparse.jl")
 include("migration.jl")
 include("parsercombinator.jl")
 include("comments.jl")
+include("sugar.jl")
 
 end # module
