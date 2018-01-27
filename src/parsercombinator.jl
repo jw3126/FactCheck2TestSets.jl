@@ -64,13 +64,7 @@ writeline(::BitBucket) = ""
 
 immutable UsingFactCheck end
 usingfactcheck = ws + E"using FactCheck" + ws + Eos() > UsingFactCheck
-writeline(::UsingFactCheck) = """if VERSION >= v"0.5.0-dev+7720"
-    using Base.Test
-else
-    using BaseTestNext
-    const Test = BaseTestNext
-end"""
-
+writeline(::UsingFactCheck) = "using Base.Test"
 anyline = usingfactcheck | ignore | line | blob
 
 function convert_line(s::String)

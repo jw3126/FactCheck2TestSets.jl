@@ -28,9 +28,8 @@ function migrate_REQUIRE_string(path)
     else
         lines = [""]
     end
-    f(line) = strip(line) in ["FactCheck", "BaseTestNext"] ? "" : line
+    f(line) = strip(line) in ["FactCheck", "BaseTestNext"] ? "" : (line * '\n')
     map!(f, lines)
-    push!(lines, "BaseTestNext\n")
     join(lines)
 end
 
